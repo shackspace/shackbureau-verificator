@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
-from flask import Flask
-import time
+from aiohttp import web
 
-app = Flask(__name__)
-logfile = 'uuid.log'
 
-@app.route("/")
-def root():
-    return ""
+async def handle(request):
+    uuid = request.match_info.get('uuid')
+    # FIXME: verify uuid
+    if uuid:
+        with open(f'uuids/{uuid}.log', 'w') as f:
+            f.write('')
+        text = 'Thank you!'
+    else:
+        text = ''
+    return web.Response(text=text)
 
-@app.route("/uuid/<path:uuid>")
-def uuid(uuid=None):
-    with open(logfile, 'a') as f:
-        f.write('{},{}'.format(time.time(),uuid))
-    return "Thank you!"
 
-if __name__ == "__main__":
-    app.debug = True
-    app.run(host='0.0.0.0', port=8080)
+app = web.Application()
+app.router.add_get('/', handle)
+app.router.add_get('/{uuid}', handle)
+
+web.run_app(app, host='0.0.0.0', port=8080)
